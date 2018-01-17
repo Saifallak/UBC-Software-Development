@@ -1,0 +1,18 @@
+;Design a function that consumes two images and produces true if the first is larger than the second.
+
+(require 2htdp/image)
+;; Image1 , Image2 -> Boolean
+;; produce true if Image1 larger(width&height) than Image2
+(check-expect (larger? (rectangle 5 3 "solid" "red") (circle 2 "solid" "blue")) false)
+(check-expect (larger? (rectangle 5 3 "solid" "red") (ellipse 9 2 "solid" "blue")) false)
+(check-expect (larger? (rectangle 3 2 "solid" "red") (square 3 "solid" "blue")) false)
+(check-expect (larger? (ellipse 9 5 "solid" "blue") (circle 2 "solid" "blue")) true)
+
+;;(define (larger? img1 img2) false)     ;stub
+
+;;(define (larger? img1 img2)    ;;template
+;;  (... img1 img2))
+
+(define (larger? img1 img2)
+  (and (> (image-width img1) (image-width img2))
+       (> (image-height img1) (image-height img2))))
