@@ -1,0 +1,92 @@
+
+; PROBLEM:
+; 
+; Design a World Program with Compound Data. You can be as creative as you like, but keep it simple. Above all, follow the recipes!
+; You must also stay within the scope of the first part of the course. Do not use language features we have not seen in the videos. 
+; 
+; If you need inspiration, you can choose to create a program that allows you to click on a spot on the screen to create a flower,
+; which then grows over time. If you click again the first flower is replaced by a new one at the new position.
+; 
+; You should do all your design work in DrRacket.
+; Following the step-by-step recipe in DrRacket will help you be sure that you have a quality solution.
+
+
+(require 2htdp/image)
+(require 2htdp/universe)
+
+;; My world program  that allows you to click on a spot on the screen to create a flower,
+;;                                which then grows over time. 
+;;                                If you click again the first flower is replaced by a new one at the new position
+
+;; =================
+;; Constants:
+(define FLOWER (overlay (circle 10 "solid" "yellow")
+                       (overlay (rotate 45 (ellipse 20 60 "solid" "blue"))
+                               (rotate 90 (ellipse 20 60 "solid" "blue"))
+                               (rotate 0 (ellipse 20 60 "solid" "blue")))
+                       (rotate -50 (ellipse 20 60 "solid" "blue"))))
+
+(define GROWSPEED 3)
+(define WIDTH 400)
+(define HEIGHT 400)
+(define MTS(empty-scene WIDTH HEIGHT))
+;; =================
+;; Data definitions:
+(define-struct flower (x y size))
+;; FLOWER is (make-flower Number Number Number)
+;; interp. a flower at position x, y and size of the flower
+
+(define f1 (make-flower 6 10 13))
+
+#;
+(define (fn-for-flower f)
+  (... (flower-x f)     ;Number
+      (flower-y f)     ;Number
+      (flower-size f)))   ;Number
+;; Template rules used:
+;;  - compound: 3 fields
+
+;; =================
+;; Functions:
+
+;; FLOWER -> FLOWER
+;; start the world with (main (make-flower (/ WIDTH 2) (/ HEIGHT 2) 1))
+;; 
+(define (main f)
+  (big-bang f                   ; FLOWER
+    (on-tick   next-flower)     ; FLOWER -> FLOWER
+    (to-draw   render-flower)   ; FLOWER -> Image
+    (on-mouse  handle-mouse)))      ; FLOWER Integer Integer MouseEvent -> FLOWER
+
+
+;; FLOWER -> FLOWER
+;; makes a new flower in the same poistion x , y
+;; increases the size of flower + GROWSPEED defined above
+(check-expect (next-flower (make-flower 3 6 3)) (make-flower 3 6 (+ 3 GROWSPEED)))
+(check-expect (next-flower (make-flower 200 250 19)) (make-flower 200 250 (+ 19 GROWSPEED)))
+
+;(define (next-flower f) f) ;stub
+;<took the template from data def.>
+(define (next-flower f)
+  (make-flower (flower-x f) (flower-y f) (+ (flower-size f) GROWSPEED)))
+
+;; FLOWER -> Image
+;; render the flower in the specific place and size
+(check-expect (render-flower (make-flower 3 5 8)) (place-image (rotate (modulo 8 360) (scale (/ 8 100) FLOWER)) 3 5 MTS) )
+(check-expect (render-flower (make-flower 200 300 150)) (place-image (rotate (modulo 150 360) (scale (/ 150 100) FLOWER)) 200 300 MTS) )
+
+;(define (render f) f) ;stub
+;<took the template from data def.>
+(define (render-flower f)
+  (place-image (rotate (modulo (flower-size f) 360) (scale (/ (flower-size f) 100) FLOWER)) (flower-x f) (flower-y f) MTS))
+
+
+;; FLOWER Integer Integer MouseEvent -> FLOWER
+;; makes a new flower with x y of mouse and size 1
+;(define (handle-mouse f x y me) f)
+(check-expect (handle-mouse (make-flower 33 12 9) 5 5 "button-down") (make-flower 5 5 1))
+(check-expect (handle-mouse (make-flower 33 12 9) 5 5 "button-up") (make-flower 33 12 9))
+(define (handle-mouse f x y me)
+  (cond [(mouse=? me "button-down") (make-flower x y 1)]
+       [else
+        (make-flower  (flower-x f) (flower-y f)  (flower-size f))]))
